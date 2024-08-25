@@ -6,15 +6,17 @@ namespace task2.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : ControllerBase
+    public class Orders1Controller : ControllerBase
     {
         private readonly MyDbContext _myDbContext1;
-        public OrdersController(MyDbContext myDbContext)
+        public Orders1Controller(MyDbContext myDbContext)
         {
             _myDbContext1 = myDbContext;
         }
-        [HttpGet("{id:int}")]
-        public IActionResult Get1(int id)
+
+        //API للحصول على كل طلبات بناءً على ID
+       [HttpGet("{id}")]
+        public IActionResult Get2(int id)
         {
             var OrderId = _myDbContext1.Orders.FirstOrDefault(a => a.OrderId == id);
             if (OrderId == null)
@@ -23,18 +25,16 @@ namespace task2.Controllers
             }
             return Ok(OrderId);
         }
-
-        // API للحصول على كل طلبات بناءً على ID
-        //[HttpGet("{id}")]
-        //public IActionResult Get2(int id)
-        //{
-        //    var OrderId = _myDbContext1.Orders.FirstOrDefault(a => a.OrderId == id);
-        //    if (OrderId == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return Ok(OrderId);
-        //}
+        [HttpGet("{OrderDate1}")]
+        public IActionResult Get2(DateOnly OrderDate1)
+        {
+            var OrderId = _myDbContext1.Orders.FirstOrDefault(a => a.OrderDate == OrderDate1);
+            if (OrderId == null)
+            {
+                return NotFound();
+            }
+            return Ok(OrderId);
+        }
 
         // API للحصول على جميع طلبات
         [HttpGet]
@@ -44,7 +44,7 @@ namespace task2.Controllers
             return Ok(Orders);
         }
 
-    
+
         // API للحذف على طلب بناءً على ID
 
         [HttpDelete("{id}")]
@@ -74,18 +74,6 @@ namespace task2.Controllers
         //    _myDbContext1.SaveChanges();
 
         //    return NoContent();
-        //}
-
-        //[HttpGet("{OrderDate1:DateOnly}")]
-
-        //public IActionResult Get2(DateOnly OrderDate1)
-        //{
-        //    var OrderId = _myDbContext1.Orders.FirstOrDefault(a => a.OrderDate == OrderDate1);
-        //    if (OrderId == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return Ok(OrderId);
         //}
     }
 }

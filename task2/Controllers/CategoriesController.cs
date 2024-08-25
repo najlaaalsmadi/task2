@@ -28,6 +28,11 @@ namespace task2.Controllers
        [HttpGet("{id}")]
         public IActionResult Get2(int id)
         {
+
+            if (id <= 0)
+            {
+                return BadRequest("Invalid ID provided. ID must be greater than 0."); // 400 Bad Request
+            }
             var category = _myDbContext1.Categories.FirstOrDefault(a => a.CategoryId == id);
             if (category == null)
             {
@@ -48,6 +53,10 @@ namespace task2.Controllers
         [HttpGet("name/{name}")]
         public IActionResult GetCategoryByName1(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return BadRequest("Name cannot be null or empty."); // 400 Bad Request
+            }
             var category = _myDbContext1.Categories.FirstOrDefault(c => c.CategoryName == name);
             if (category == null)
             {
@@ -55,6 +64,35 @@ namespace task2.Controllers
             }
             return Ok(category);
         }
+        
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         //[HttpGet("byname/{name:alpha}")]
         //public IActionResult GetCategoryByName2(string name)
         //{
