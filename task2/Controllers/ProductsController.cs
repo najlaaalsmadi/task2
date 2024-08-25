@@ -17,14 +17,12 @@ namespace task2.Controllers
         //public IActionResult Get1(int id)
         //{
         //    var Product = _myDbContext1.Products.FirstOrDefault(a => a.ProductId == id);
-        //    if (Product == null)
-        //    {
-        //        return NotFound();
-        //    }
+        //    if (Pro
+
         //    return Ok(Product);
         //}
         // API للحصول على الفئة بناءً على ID
-        [HttpGet("{id}")]
+        [HttpGet("prodectbyId/{id}")]
         public IActionResult Get2(int id)
         {
             var Product = _myDbContext1.Products.FirstOrDefault(a => a.ProductId == id);
@@ -58,6 +56,16 @@ namespace task2.Controllers
         public IActionResult GetProductByName2(string name)
         {
             var Product = _myDbContext1.Products.FirstOrDefault(c => c.ProductName == name);
+            if (Product == null)
+            {
+                return NotFound();
+            }
+            return Ok(Product);
+        }
+        [HttpGet("prodectbycategoryId/{category_id}")]
+        public IActionResult GetProductbycategory(int category_id)
+        {
+            var Product = _myDbContext1.Products.Where(x=>x.CategoryId== category_id).ToList();
             if (Product == null)
             {
                 return NotFound();
