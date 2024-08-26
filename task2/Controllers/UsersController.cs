@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using task2.DOTS;
 using task2.Models;
 
 namespace task2.Controllers
@@ -96,5 +97,36 @@ namespace task2.Controllers
 
         //    return NoContent();
         //}
+
+
+        [HttpPost]
+        public IActionResult Careateuser([FromForm] usersRequestDOT usersRequestDOT)
+        {
+            if (!ModelState.IsValid) { 
+            return BadRequest(ModelState);
+        }
+            var user = new User
+            {
+                Username = usersRequestDOT.Username,
+
+                Password = usersRequestDOT.Password,
+
+                Email = usersRequestDOT.Email,
+            };
+            _myDbContext1.Users.Add(user);
+            _myDbContext1.SaveChanges();
+            return Ok();
+        }
+        [HttpPut]
+        public IActionResult Edituser(int id, [FromForm] usersRequestDOT usersRequestDOT)
+        {
+            var user = _myDbContext1.Users.FirstOrDefault(l=>l.UserId == id);
+            user.Username= usersRequestDOT.Username;
+            user.Password= usersRequestDOT.Password;
+            user.Email= usersRequestDOT.Email;
+            _myDbContext1.Users.Update(user); 
+            _myDbContext1.SaveChanges();
+            return Ok();
+        }
     }
 }

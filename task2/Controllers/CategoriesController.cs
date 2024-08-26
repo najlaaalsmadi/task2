@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using task2.DOTS;
 using task2.Models;
 
 namespace task2.Controllers
@@ -64,9 +65,57 @@ namespace task2.Controllers
             }
             return Ok(category);
         }
-        
+        [HttpPost]
+        public async Task<IActionResult> Addnewcategory([FromForm] categoryRequestDTO categoryDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-      
+            // تحديد متغير لحفظ مسار الصورة
+            string imagePath = null;
+
+            // التحقق من وجود صورة مرفوعة
+            if (categoryDTO.CategoryImage != null && categoryDTO.CategoryImage.Length > 0)
+            {
+                // تحديد مكان حفظ الصورة على السيرفر
+                var folderPath = Path.Combine("wwwroot", "img");
+                Directory.CreateDirectory(folderPath);
+
+                // إنشاء اسم فريد للصورة باستخدام GUID
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(categoryDTO.CategoryImage.FileName);
+
+                // تحديد المسار الكامل للملف
+                var fullPath = Path.Combine(folderPath, uniqueFileName);
+
+                // فتح ملف جديد وحفظ الصورة فيه
+                using (var fileStream = new FileStream(fullPath, FileMode.Create))
+                {
+                    // نسخ بيانات الصورة المرفوعة إلى الملف
+                    await categoryDTO.CategoryImage.CopyToAsync(fileStream);
+                }
+
+                // حفظ المسار النسبي للصورة لاستخدامه لاحقًا
+                imagePath = "/img/" + uniqueFileName;
+            }
+
+            // إنشاء كائن جديد من فئة Category وتعبئته بالبيانات
+            var category = new Category
+            {
+                CategoryName = categoryDTO.CategoryName,
+                CategoryImage = imagePath // تعيين مسار الصورة المحفوظة
+            };
+
+            // إضافة الكائن إلى قاعدة البيانات
+            _myDbContext1.Categories.Add(category);
+            _myDbContext1.SaveChanges();
+
+            // إرجاع استجابة بنجاح العملية
+            return Ok();
+        }
+
+
 
 
 

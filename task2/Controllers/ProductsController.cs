@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using task2.DOTS;
 using task2.Models;
 
 namespace task2.Controllers
@@ -32,7 +33,17 @@ namespace task2.Controllers
             }
             return Ok(Product);
         }
+        [HttpGet("Getpricemax")]
+        public IActionResult Getpricemax()
+        {
+            var Product = _myDbContext1.Products.OrderByDescending(a => a.Price).ToList();
 
+            if (Product == null)
+            {
+                return NotFound();
+            }
+            return Ok(Product);
+        }
         // API للحصول على جميع الفئات
         [HttpGet]
         public IActionResult Get()
@@ -102,6 +113,92 @@ namespace task2.Controllers
 
             return NoContent();
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddnewProduct([FromForm] ProductRequestDTO ProductDTO)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // تحقق من وجود الصورة المرفوعة
+            if (ProductDTO.ProductImage != null && ProductDTO.ProductImage.Length > 0)
+            {
+                // تحديد مسار حفظ الصور
+                var folderPath = Path.Combine("wwwroot", "images", "products");
+                Directory.CreateDirectory(folderPath);
+
+                // إنشاء اسم فريد للملف باستخدام GUID
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(ProductDTO.ProductImage.FileName);
+
+                // تحديد المسار الكامل للملف
+                var filePath = Path.Combine(folderPath, uniqueFileName);
+
+                // فتح ملف جديد وحفظ الصورة فيه
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    // نسخ بيانات الصورة المرفوعة إلى الملف
+                    await ProductDTO.ProductImage.CopyToAsync(fileStream);
+                }
+
+                // حفظ المسار النسبي للصورة لاستخدامه لاحقًا
+                string imagePath = "/images/products/" + uniqueFileName;
+
+                // البحث عن الفئة بناءً على CategoryId
+                var category = await _myDbContext1.Categories.FindAsync(ProductDTO.CategoryId);
+
+                // التحقق من وجود الفئة
+                if (category == null)
+                {
+                    return BadRequest("Category not found");
+                }
+
+                // إنشاء كائن جديد من فئة Product وتعبئته بالبيانات
+                var product = new Product
+                {
+                    ProductName = ProductDTO.ProductName,
+                    Description = ProductDTO.Description,
+                    Price = ProductDTO.Price,
+                    CategoryId = ProductDTO.CategoryId,
+                    ProductImage = imagePath
+                };
+
+                _myDbContext1.Products.Add(product); // إضافة المنتج إلى قاعدة البيانات
+                await _myDbContext1.SaveChangesAsync(); // حفظ التغييرات
+
+                return Ok(); // إرجاع استجابة بنجاح العملية
+            }
+
+            return BadRequest("No image was uploaded"); // إذا لم يتم رفع صورة، إرجاع خطأ
+        }
+        [HttpPut]
+        public IActionResult Updateprodect(int id, [FromForm] ProductRequestDTO ProductDTO)
+        {
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            if (!Directory.Exists(uploadsFolderPath))
+            {
+                Directory.CreateDirectory(uploadsFolderPath);
+            }
+            var filePath = Path.Combine(uploadsFolderPath, ProductDTO.ProductImage.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                 ProductDTO.ProductImage.CopyToAsync(stream);
+            }
+            var product=_myDbContext1.Products.FirstOrDefault(L=>L.ProductId == id);
+            product.ProductName = ProductDTO.ProductName;
+            product.Description = ProductDTO.Description;
+            product.Price = ProductDTO.Price;
+            product.CategoryId = ProductDTO.CategoryId;
+            product.ProductImage= product.ProductImage;
+            _myDbContext1.Products.Update(product);
+            _myDbContext1.SaveChanges();
+
+
+
+            return Ok();
+        }
+
+
     }
 }
 
