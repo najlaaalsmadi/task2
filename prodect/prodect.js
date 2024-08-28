@@ -43,7 +43,7 @@ async function getProducts() {
 
 function localStorageCategoryId1(ProductID) {
   localStorage.setItem("productId", ProductID);
-  window.location.href = "../prodect/detililes.html";
+  window.location.href = "detililes.html";
 }
 
 // تنفيذ الدالة بعد تحميل الصفحة بالكامل

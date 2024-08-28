@@ -1,0 +1,12 @@
+const url = "http://localhost:8367/api/Categories";
+var form = document.getElementById("form");
+async function ADDProdiecit() {
+  debugger;
+  var formdata = new FormData(form);
+  event.preventDefault();
+  let response = await fetch("http://localhost:8367/api/Categories", {
+    method: "POST",
+    body: formdata,
+  });
+  var data = response;
+}

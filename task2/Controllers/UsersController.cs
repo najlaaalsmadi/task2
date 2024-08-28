@@ -128,5 +128,60 @@ namespace task2.Controllers
             _myDbContext1.SaveChanges();
             return Ok();
         }
+        [HttpGet("math")]
+        public IActionResult MATH(string input) { 
+            var x=input.Split(' ');
+            var num1=Convert.ToDouble(x[0]);
+            var op=x[1];
+            var num2=Convert.ToDouble(x[2]);
+            double result = 0;
+            switch(op)
+            {
+                    case ("+"):
+                    result=num1+ num2;
+                    break;
+                    case ("-"):
+                    result=num1- num2;
+                    break;
+                    case ("*"):
+                    result=num1*num2;
+                    break;
+            }
+
+        return Ok(result);
+        }
+        [HttpGet("check")]
+
+        public IActionResult check1(int num1, int num2)
+        {
+            bool result = false;
+            if (num1 == 30 || num2 == 30)
+            {
+                result = true;
+            }
+            else if (num2 + num1 == 30)
+            {
+                result = true;
+            }
+            else
+            {
+                result = false;
+            }
+            return Ok(result);
+        }
+        [HttpGet("check3")]
+        public IActionResult check3(int num)
+        {
+            bool result = false;
+            if((num%3==0 || num % 7 == 0)&&num>0)
+            {
+                result = true;
+            }
+            else
+            {
+                result = false;
+            }
+            return Ok(result);
+        }
     }
 }

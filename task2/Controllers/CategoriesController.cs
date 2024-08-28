@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using task2.DOTS;
 using task2.Models;
 
@@ -66,45 +65,28 @@ namespace task2.Controllers
             return Ok(category);
         }
         [HttpPost]
-        public async Task<IActionResult> Addnewcategory([FromForm] categoryRequestDTO categoryDTO)
+        public IActionResult Addnewcategory([FromForm] categoryRequestDTO categoryDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
-            // تحديد متغير لحفظ مسار الصورة
-            string imagePath = null;
-
-            // التحقق من وجود صورة مرفوعة
-            if (categoryDTO.CategoryImage != null && categoryDTO.CategoryImage.Length > 0)
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            if (!Directory.Exists(uploadsFolderPath))
             {
-                // تحديد مكان حفظ الصورة على السيرفر
-                var folderPath = Path.Combine("wwwroot", "img");
-                Directory.CreateDirectory(folderPath);
-
-                // إنشاء اسم فريد للصورة باستخدام GUID
-                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(categoryDTO.CategoryImage.FileName);
-
-                // تحديد المسار الكامل للملف
-                var fullPath = Path.Combine(folderPath, uniqueFileName);
-
-                // فتح ملف جديد وحفظ الصورة فيه
-                using (var fileStream = new FileStream(fullPath, FileMode.Create))
-                {
-                    // نسخ بيانات الصورة المرفوعة إلى الملف
-                    await categoryDTO.CategoryImage.CopyToAsync(fileStream);
-                }
-
-                // حفظ المسار النسبي للصورة لاستخدامه لاحقًا
-                imagePath = "/img/" + uniqueFileName;
+                Directory.CreateDirectory(uploadsFolderPath);
+            }
+            var filePath = Path.Combine(uploadsFolderPath, categoryDTO.CategoryImage.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                categoryDTO.CategoryImage.CopyToAsync(stream);
             }
 
             // إنشاء كائن جديد من فئة Category وتعبئته بالبيانات
             var category = new Category
             {
                 CategoryName = categoryDTO.CategoryName,
-                CategoryImage = imagePath // تعيين مسار الصورة المحفوظة
+                CategoryImage = Path.Combine("Uploads", categoryDTO.CategoryImage.FileName) // تعيين مسار الصورة المحفوظة
             };
 
             // إضافة الكائن إلى قاعدة البيانات
@@ -115,8 +97,40 @@ namespace task2.Controllers
             return Ok();
         }
 
+        [HttpPut] // استخدم PUT للتعديل
+        public IActionResult Edit(int id, [FromForm] categoryRequestDTO categoryDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            if (!Directory.Exists(uploadsFolderPath))
+            {
+                Directory.CreateDirectory(uploadsFolderPath);
+            }
+            var filePath = Path.Combine(uploadsFolderPath, categoryDTO.CategoryImage.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                categoryDTO.CategoryImage.CopyToAsync(stream);
+            }
 
+            var category = _myDbContext1.Categories.FirstOrDefault(l => l.CategoryId == id);
+            if (category == null)
+            {
+                return NotFound($"الفئة بالرقم {id} غير موجودة.");
+            }
 
+            category.CategoryName = categoryDTO.CategoryName;
+
+            // تحديث مسار الصورة
+            category.CategoryImage = Path.Combine("Uploads", categoryDTO.CategoryImage.FileName);
+
+            _myDbContext1.Categories.Update(category);
+            _myDbContext1.SaveChanges();
+
+            return Ok(category); // إعادة الفئة المعدلة أو رسالة نجاح
+        }
 
 
 
@@ -154,21 +168,36 @@ namespace task2.Controllers
         //}
 
         // API للحذف على الفئة بناءً على ID
-
         [HttpDelete("{id}")]
-        public IActionResult DeleteCategory1(int id)
+        public IActionResult DeleteCategory(int id)
         {
-            var category = _myDbContext1.Categories.FirstOrDefault(c => c.CategoryId == id);
-            if (category == null)
+            try
             {
-                return NotFound();
+                // احذف جميع المنتجات المرتبطة بالفئة إذا كانت موجودة
+                var products = _myDbContext1.Products.Where(p => p.CategoryId == id).ToList();
+                if (products.Any())
+                {
+                    _myDbContext1.Products.RemoveRange(products);
+                }
+
+                // الآن احذف الفئة نفسها
+                var category = _myDbContext1.Categories.FirstOrDefault(p => p.CategoryId == id);
+                if (category != null)
+                {
+                    _myDbContext1.Categories.Remove(category);
+                    _myDbContext1.SaveChanges();
+                    return Ok("Category and related products deleted successfully.");
+                }
+
+                return NotFound("Category not found.");
             }
-
-            _myDbContext1.Categories.Remove(category);
-            _myDbContext1.SaveChanges();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
+
         //[HttpGet("{id:int}")]
         //public IActionResult DeleteCategory2(int id)
         //{

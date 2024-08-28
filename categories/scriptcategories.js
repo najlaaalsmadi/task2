@@ -8,11 +8,13 @@ async function getCategories() {
 
   result.forEach((element) => {
     container.innerHTML += `<div class="card" style="width: 18rem;">
-  <img src="../img/${element.categoryImage}" class="card-img-top" alt="${element.categoryImage}NOT Found erorr">
+<img src="../../Uploads/${element.categoryImage}" class="card-img-top" alt="${element.categoryImage} NOT Found error">
   <div class="card-body">
     <h5 class="card-title">${element.categoryName}</h5>
     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
     <button onclick="localStorageCategoryId(${element.categoryId})" class="btn btn-primary">Store CategoryID</button>
+    <button onclick="localStorageCategoryId2(${element.categoryId})" class="btn btn-primary">edait</button>
+
   </div>
 </div>`;
   });
@@ -20,5 +22,9 @@ async function getCategories() {
 function localStorageCategoryId(id) {
   localStorage.categoryId = id;
   window.location.href = "../prodect/prodect.html";
+}
+function localStorageCategoryId2(id) {
+  localStorage.categoryId = id;
+  window.location.href = "../categories/edait.html";
 }
 getCategories();
